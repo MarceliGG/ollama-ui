@@ -1,4 +1,4 @@
-import { AiMessage } from "@/types/types";
+import { AiMessage, AiResponse } from "@/types/types";
 
 const messages: AiMessage[] = []
 
@@ -24,16 +24,47 @@ export async function POST(req: Request) {
     body: JSON.stringify({
       model: "deepseek-r1:1.5b",
       messages,
-      stream: false
+      stream: true
     })
   })
 
-  const body = await res.json()
 
-  messages.push(body.message)
+  const stream = new ReadableStream({
+    async start(controller) {
+      const reader = res.body?.getReader()
 
-  return new Response(JSON.stringify(body), {
+      let done = false;
+
+      let msg = ""
+      let thoughts = ""
+
+      if (reader)
+        while (!done) {
+          const { value, done: isDone } = await reader.read();
+          const text = new TextDecoder().decode(value);
+          controller.enqueue(text);
+          if (text) {
+            const aiRes: AiResponse = JSON.parse(text);
+            msg += aiRes.message.content;
+            thoughts += aiRes.message?.thinking || '';
+          }
+          done = isDone
+        }
+      controller.close();
+      messages.push(thoughts ? {
+        role: "assistant",
+        content: msg,
+        thinking: thoughts
+      } : {
+        role: "assistant",
+        content: msg,
+      })
+    }
+  });
+
+
+  return new Response(stream, {
     status: 200,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 'Content-Type': 'text/event-stream' }
   });
 }

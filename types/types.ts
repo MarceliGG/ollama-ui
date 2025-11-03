@@ -1,7 +1,7 @@
 export type AiMessage = {
   role: "system" | "user" | "assistant" | "tool",
   content: string,
-  
+  thinking?: string
 }
 
 export type AiResponse = {
