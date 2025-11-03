@@ -1,6 +1,5 @@
 "use client"
 import React, { useEffect, useState } from "react";
-import "./page.css"
 import { AiMessage } from "@/types/types";
 
 export default function Home() {
@@ -32,12 +31,12 @@ export default function Home() {
   }, [])
   return (
     <>
-      <div id="chat-container">
-        <div id="chat">
+      <div className="size-full flex flex-col w-4/5 mx-auto py-2">
+        <div className="grow w-full">
           {messages?.map((msg: AiMessage, idx: number) => <div key={idx}><h3>{msg.role}</h3>{msg.content}</div>) || "Loading..."}
         </div>
-        <form onSubmit={handleAsk} id="prompt">
-          <input placeholder="Ask AI..." value={prompt} onChange={e => setPrompt(e.currentTarget.value)} />
+        <form onSubmit={handleAsk} className="w-full bg-zinc-800 px-4 py-1 rounded-full flex gap-2">
+          <input placeholder="Ask AI..." value={prompt} onChange={e => setPrompt(e.currentTarget.value)} className="grow outline-none border-y-2 border-transparent focus:border-b-gray-400" />
           <button>Ask</button>
         </form>
       </div>
