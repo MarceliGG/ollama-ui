@@ -1,12 +1,15 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { AiMessage, AiResponse } from "@/types/types";
+import Markdown from "react-markdown"
+import remarkMath from "remark-math"
+import rehypeKatex from 'rehype-katex'
+import 'katex/dist/katex.min.css'
 
 export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState<AiMessage[]>();
   const [currentMessage, setCurrentMessage] = useState<AiMessage | null>(null);
-
   const handleAsk = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -65,6 +68,7 @@ export default function Home() {
     });
   }, [])
 
+
   return (
     <>
       <div className="size-full flex flex-col w-4/5 mx-auto py-2">
@@ -73,16 +77,23 @@ export default function Home() {
             <div key={idx} className={` flex flex-col p-4 rounded-2xl w-fit ${msg.role === "user" ? "bg-gray-800" : "bg-zinc-800"}`}>
               <span className="text-xs text-zinc-400">{msg.role}</span>
               {msg.thinking && <p className="text-sm text-gray-500 p-1">{msg.thinking}</p>}
-              {msg.content}
+              <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]} components={{
+                h1: ({ children }) => <h1 className="text-2xl py-2">{children}</h1>,
+                h2: ({ children }) => <h2 className="text-xl py-2">{children}</h2>,
+                h3: ({ children }) => <h3 className="text-lg py-2">{children}</h3>,
+               }}>
+              {msg.content.replace(/\\\[([\s\S]*?)\\\]/g, '$$ $1 $$').replace(/\\\((.*?)\\\)/g, '$$$1$$')}
+            </Markdown>
             </div>
           ) || "Loading..."}
-          {currentMessage && <div>{currentMessage.thinking} <div>{currentMessage.content}</div></div>}
-        </div>
-        <form onSubmit={handleAsk} className="w-full bg-zinc-800 px-4 py-1 rounded-full flex gap-2">
-          <input placeholder="Ask AI..." value={prompt} onChange={e => setPrompt(e.currentTarget.value)} className="grow outline-none border-y-2 border-transparent focus:border-b-gray-400" />
-          <button>Ask</button>
-        </form>
+        {currentMessage && <div>{currentMessage.thinking} <div>{currentMessage.content}</div></div>}
       </div>
+      <form onSubmit={handleAsk} className="w-full bg-zinc-800 px-4 py-1 rounded-full flex gap-2">
+        <input placeholder="Ask AI..." value={prompt} onChange={e => setPrompt(e.currentTarget.value)} className="grow outline-none border-y-2 border-transparent focus:border-b-gray-400" />
+        <button>Ask</button>
+      </form>
+    </div >
     </>
   );
 }
+/**/
